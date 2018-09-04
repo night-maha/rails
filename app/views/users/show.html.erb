@@ -1,0 +1,26 @@
+<h1>生徒情報</h1>
+
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>学籍番号:</strong>
+  <%= @student.student_id %>
+</p>
+
+<p>
+  <strong>氏名:</strong>
+  <%= @student.name %>
+</p>
+
+<p>
+  <strong>性別:</strong>
+  <%= @student.sex %>
+</p>
+
+<p>
+  <strong>生年月日:</strong>
+  <%= @student.birthday %>
+</p>
+
+<%= link_to '編集', users_edit_path(@student) %>
+<%= link_to '戻る', users_teacher_path %>

@@ -1,0 +1,38 @@
+<%= form_for(student, url: url, html: {method: method})  do |f| %>
+  <% if student.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(student.error.count, "error") %> prohibited this student from being savad:</h2>
+
+      <ul>
+        <% student.errors.full_messages.each do |message| %>
+          <li><%= message %><li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :学籍番号 %>
+    <%= f.number_field :student_id %>
+  </div>
+
+  <div class="field">
+    <%= f.label :氏名 %>
+    <%= f.text_field :name %>
+  </div>
+
+  <div class="field">
+    <p>性別</p>
+    <label><%= f.radio_button :sex, '男' %>男</label>
+    <label><%= f.radio_button :sex, '女' %>女</label>
+  </div>
+
+  <div class="field">
+    <%= f.label :生年月日 %>
+    <%= f.date_select :birthday, :use_month_numbers => true, :start_year => 1990, :end_year => 2000 %>
+  </div>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

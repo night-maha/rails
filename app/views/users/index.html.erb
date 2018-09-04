@@ -1,0 +1,17 @@
+<h1>ログインフォーム</h1>
+	    <% if flash[:notice] %>
+	      <p><%= flash[:notice] %></p>
+	    <% end %>
+	  <div align="center">
+	    <table border="0">
+	      <%= form_tag("/login", method: "post") do -%>
+	         学籍番号：<%= text_field_tag :s_id, '', size: 24 %><br>
+	         パスワード：<%= password_field_tag :s_password, '', size: 24 %>
+	        <tr>
+	        	<td colspan="2">
+	            <%= submit_tag("ログイン") %>
+	          </td>
+	        </tr>
+	      <% end -%>
+	  	</table>
+	  </div>
