@@ -10,10 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_08_17_051648) do
+ActiveRecord::Schema.define(version: 2018_09_06_060215) do
 
   create_table "assessings", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.integer "student_id", unsigned: true
+    t.integer "student_id"
     t.integer "jpn"
     t.integer "math"
     t.integer "eng"
@@ -26,7 +26,7 @@ ActiveRecord::Schema.define(version: 2018_08_17_051648) do
   end
 
   create_table "records", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.integer "student_id", unsigned: true
+    t.integer "student_id"
     t.integer "jpn"
     t.integer "math"
     t.integer "eng"
@@ -39,16 +39,20 @@ ActiveRecord::Schema.define(version: 2018_08_17_051648) do
   end
 
   create_table "students", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
-    t.integer "student_id", unsigned: true
+    t.integer "student_id"
+    t.string "password"
     t.string "name"
     t.string "sex"
     t.date "birthday"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
+    t.index ["email"], name: "index_students_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_students_on_reset_password_token", unique: true
   end
 
 end
