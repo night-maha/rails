@@ -4,6 +4,11 @@
   <%= devise_error_messages! %>
 
   <div class="field">
+    <%= f.label :学籍番号 %>
+    <%= f.number_field :student_id %>
+  </div>
+
+  <div class="field">
     <%= f.label :生年月日 %>
     <%= f.date_select :birthday, :use_month_numbers => true, :start_year => 1990, :end_year => 2000 %>
   </div>

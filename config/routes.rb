@@ -1,7 +1,22 @@
 Rails.application.routes.draw do
   devise_for :students
-  root 'users#index'
+=begin
+  devise_scope :students do
+    root :to => "devise/sessions#new"
+  end
+=end
+
+  authenticated :student do
+    root 'users#record', as: :authenticated_root
+  end
+
+  devise_scope :student do
+    root :to => "devise/sessions#new"
+    get '/students/sign_out' => 'devise/sessions#destroy'
+  end
+
   post '/login' => 'users#login'
+  post 'users/record' => 'users#record'
   get 'users/teacher'
   get 'users/index', as:"users_index"
   get 'users/show/:id' => 'users#show', as:"users_show"

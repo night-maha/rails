@@ -4,6 +4,10 @@ class UsersController < ApplicationController
   def index
   end
 
+  def record
+    @name = current_student.name
+  end
+
   def login
     #redirect_to '/users/index'
     @stu_id = params[:s_id]
@@ -11,7 +15,6 @@ class UsersController < ApplicationController
     if !(@stu_id.empty? || @stu_pass.empty?)
       if @stu_id == "999999" && @stu_pass == "dr951kntq"
         redirect_to users_teacher_path
-        # print cgi.header({"status" => "REDIRECT", "location" => teacher_url})
       else
         #検索結果の個数
         login_id = Student.where("student_id = ?", @stu_id).count
