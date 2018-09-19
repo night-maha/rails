@@ -20,6 +20,7 @@
         <td><%= student.name %></td>
         <td><%= student.sex %></td>
         <td><%= student.birthday %></td>
+        <td><%= link_to '成績入力', users_new_record_path(student) %></td>
         <td><%= link_to '詳細表示', users_show_path(student) %></td>
         <td><%= link_to '編集', users_edit_path(student) %></td>
         <td><%= link_to '削除', users_destroy_path(student), method: :delete, data: { confirm: 'ほんとにいいの？' } %></td>
@@ -30,6 +31,7 @@
 
 <br>
 
-<%= link_to '新規登録', users_new_path %>
+<%= link_to '新規登録', students_sign_up_path %>
+<%= link_to 'ログアウト', users_index_path %>
 
 

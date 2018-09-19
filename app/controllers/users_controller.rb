@@ -1,11 +1,30 @@
 class UsersController < ApplicationController
-  before_action :set_student, only: [:show, :edit, :update, :destroy]
+  before_action :set_student, only: [:show, :edit, :update, :destroy, :new_record, :add_record]
 
   def index
   end
 
-  def record
+  def show_record
     @name = current_student.name
+  end
+
+  def new_record
+    @record = Record.new
+  end
+
+  def add_record
+    @record = Record.new(record_params)
+    respond_to do |format|
+      if @record.save
+        format.html { redirect_to "/users/teacher", notice: '新規登録しました' }
+        format.json { render :add_record, status: :created, location: @record }
+      else
+        # render :new_record, :id => @student.id
+        flash[:notice] = '必須項目は記入して下さい'
+        format.html { render :new_record, :id => @student.id }
+        format.json { render json: @record.errors, status: :unprocessable_entity }
+      end
+    end
   end
 
   def login
@@ -79,7 +98,6 @@ class UsersController < ApplicationController
 
   def destroy
     @student.destroy
-
     respond_to do |format|
       format.html { redirect_to "/users/teacher", notice: '削除しました' }
       format.json { head :no_content }
@@ -93,5 +111,16 @@ private
 
   def student_params
     params.require(:student).permit(:student_id, :password, :name, :sex, :birthday)
+  end
+
+  def record_params
+    params.require(:record).permit(:student_id, :jpn, :math, :eng, :sci, :soc, :year, :semester)
+  end
+
+  def correct_user
+    @micropost = current_user.microposts.find_by(id: params[:id])
+    unless @micropost
+      redirect_to root_url
+    end
   end
 end
