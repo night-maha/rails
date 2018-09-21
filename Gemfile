@@ -68,3 +68,5 @@ gem 'devise'
 gem 'graphql'
 
 gem 'graphiql-rails', group: :development
+
+gem 'graphql-activerecord'
