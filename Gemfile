@@ -70,3 +70,5 @@ gem 'graphql'
 gem 'graphiql-rails', group: :development
 
 gem 'graphql-activerecord'
+
+gem 'httparty'

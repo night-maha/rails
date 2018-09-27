@@ -6,6 +6,22 @@ class UsersController < ApplicationController
 
   def show_record
     @name = current_student.name
+    query = <<~QUERY
+    {
+        record{
+          jpn
+          math
+          eng
+          sci
+          soc
+          year
+          semester
+        }
+    }
+    QUERY
+    response = HTTParty.post( "http://192.168.33.10:3000/graphql", body: {query: query})
+    logger.debug response
+    @cla = response.class
   end
 
   def new_record
