@@ -1,16 +1,15 @@
 <h1>教員用ページ</h1>
+ <%= form_tag("/users/login", method: "post") do -%>
 	  <div align="center">
 	    <table border="0">
-	      <%= form_tag("/users/login", method: "post") do -%>
-	         教員番号：<%= text_field_tag :s_id, '', size: 24 %><br>
-	         パスワード：<%= password_field_tag :s_password, '', size: 24 %>
-	        <tr>
-	        	<td colspan="2">
-	            <%= submit_tag "ログイン", name: "login_teacher" %>
-	          </td>
-	        </tr>
-	      <% end -%>
+				 教員番号：<%= text_field_tag :s_id, '', size: 24 %><br>
+				 パスワード：<%= password_field_tag :s_password, '', size: 24 %>
+				<tr>
+					<td colspan="2">
+						<%= submit_tag "ログイン", name: "login_teacher" %>
+					</td>
+				</tr>
 	  	</table>
 	  </div>
-
+ <% end -%>
 <%= link_to('生徒用ページに戻る', '/') %>

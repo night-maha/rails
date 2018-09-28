@@ -19,7 +19,9 @@ Types::QueryType = GraphQL::ObjectType.define do
     description 'Recordのデータ全部もってくる'
     #argument :student_id, !types.Int
     resolve ->(obj, args, ctx) {
-      Record.where('student_id = ?', ctx[:current_student])
+      Record.where('student_id = ?', ctx[:current_student]).order(year: :desc, semester: :desc)
+      #Record.where('student_id = ?', 1)
+      #Record.all
     }
   end
 #=end

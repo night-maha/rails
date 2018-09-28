@@ -6,22 +6,24 @@ class UsersController < ApplicationController
 
   def show_record
     @name = current_student.name
-    query = <<~QUERY
-    {
-        record{
-          jpn
-          math
-          eng
-          sci
-          soc
-          year
-          semester
-        }
-    }
+    @stu_id = current_student.student_id
+    @query = <<~QUERY
+      {
+          record{
+            jpn
+            math
+            eng
+            sci
+            soc
+            year
+            semester
+          }
+      }
     QUERY
-    response = HTTParty.post( "http://192.168.33.10:3000/graphql", body: {query: query})
-    logger.debug response
-    @cla = response.class
+    response = execute
+    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
+    #logger.debug response
+    @record = response["data"]["record"]
   end
 
   def new_record
@@ -41,6 +43,12 @@ class UsersController < ApplicationController
         format.json { render json: @record.errors, status: :unprocessable_entity }
       end
     end
+  rescue ActiveRecord::RecordNotUnique => e
+    logger.error e
+    logger.error e.backtrace.join("\n")
+
+    flash[:alert] = '既に成績データが入っています'
+    render :new_record, :id => @student.id
   end
 
   def login
@@ -138,5 +146,45 @@ private
     unless @micropost
       redirect_to root_url
     end
+  end
+
+  def execute
+    variables = ensure_hash(params[:variables])
+    #query = params[:query]
+    operation_name = params[:operationName]
+    context = {
+        # Query context goes here, for example:
+        current_student: current_student.student_id,
+    }
+    result = ExamRecordSchema.execute(@query, variables: variables, context: context, operation_name: operation_name)
+    #render json: result
+  rescue => e
+    raise e unless Rails.env.development?
+    handle_error_in_development e
+  end
+
+  # Handle form data, JSON body, or a blank value
+  def ensure_hash(ambiguous_param)
+    case ambiguous_param
+    when String
+      if ambiguous_param.present?
+        ensure_hash(JSON.parse(ambiguous_param))
+      else
+        {}
+      end
+    when Hash, ActionController::Parameters
+      ambiguous_param
+    when nil
+      {}
+    else
+      raise ArgumentError, "Unexpected parameter: #{ambiguous_param}"
+    end
+  end
+
+  def handle_error_in_development(e)
+    logger.error e.message
+    logger.error e.backtrace.join("\n")
+
+    render json: { error: { message: e.message, backtrace: e.backtrace }, data: {} }, status: 500
   end
 end

@@ -7,6 +7,8 @@ class GraphqlController < ApplicationController
       # Query context goes here, for example:
       current_student: current_student.student_id,
     }
+    #logger.debug variables
+    #logger.debug operation_name
     result = ExamRecordSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
     render json: result
   rescue => e

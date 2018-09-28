@@ -3,6 +3,6 @@ class ExamRecordSchema < GraphQL::Schema
   query(Types::QueryType)
 
   lazy_resolve(Promise, :sync)
-  instrument(:query, GraphQL::Batch::Setup)
-  instrument(:field, GraphQL::Models::Instrumentation.new)
+  #instrument(:query, GraphQL::Batch::Setup)
+  #instrument(:field, GraphQL::Models::Instrumentation.new)
 end
