@@ -1,11 +1,54 @@
 class UsersController < ApplicationController
-  before_action :set_student, only: [:show, :edit, :update, :destroy]
+  before_action :set_student, only: [:show, :edit, :update, :destroy, :new_record, :add_record]
 
   def index
   end
 
-  def record
+  def show_record
     @name = current_student.name
+    @stu_id = current_student.student_id
+    @query = <<~QUERY
+      {
+          record{
+            jpn
+            math
+            eng
+            sci
+            soc
+            year
+            semester
+          }
+      }
+    QUERY
+    response = execute
+    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
+    #logger.debug response
+    @record = response["data"]["record"]
+  end
+
+  def new_record
+    @record = Record.new
+  end
+
+  def add_record
+    @record = Record.new(record_params)
+    respond_to do |format|
+      if @record.save
+        format.html { redirect_to "/users/teacher", notice: '新規登録しました' }
+        format.json { render :add_record, status: :created, location: @record }
+      else
+        # render :new_record, :id => @student.id
+        flash[:notice] = '必須項目は記入して下さい'
+        format.html { render :new_record, :id => @student.id }
+        format.json { render json: @record.errors, status: :unprocessable_entity }
+      end
+    end
+  rescue ActiveRecord::RecordNotUnique => e
+    logger.error e
+    logger.error e.backtrace.join("\n")
+
+    flash[:alert] = '既に成績データが入っています'
+    render :new_record, :id => @student.id
   end
 
   def login
@@ -79,7 +122,6 @@ class UsersController < ApplicationController
 
   def destroy
     @student.destroy
-
     respond_to do |format|
       format.html { redirect_to "/users/teacher", notice: '削除しました' }
       format.json { head :no_content }
@@ -93,5 +135,56 @@ private
 
   def student_params
     params.require(:student).permit(:student_id, :password, :name, :sex, :birthday)
+  end
+
+  def record_params
+    params.require(:record).permit(:student_id, :jpn, :math, :eng, :sci, :soc, :year, :semester)
+  end
+
+  def correct_user
+    @micropost = current_user.microposts.find_by(id: params[:id])
+    unless @micropost
+      redirect_to root_url
+    end
+  end
+
+  def execute
+    variables = ensure_hash(params[:variables])
+    #query = params[:query]
+    operation_name = params[:operationName]
+    context = {
+        # Query context goes here, for example:
+        current_student: current_student.student_id,
+    }
+    result = ExamRecordSchema.execute(@query, variables: variables, context: context, operation_name: operation_name)
+    #render json: result
+  rescue => e
+    raise e unless Rails.env.development?
+    handle_error_in_development e
+  end
+
+  # Handle form data, JSON body, or a blank value
+  def ensure_hash(ambiguous_param)
+    case ambiguous_param
+    when String
+      if ambiguous_param.present?
+        ensure_hash(JSON.parse(ambiguous_param))
+      else
+        {}
+      end
+    when Hash, ActionController::Parameters
+      ambiguous_param
+    when nil
+      {}
+    else
+      raise ArgumentError, "Unexpected parameter: #{ambiguous_param}"
+    end
+  end
+
+  def handle_error_in_development(e)
+    logger.error e.message
+    logger.error e.backtrace.join("\n")
+
+    render json: { error: { message: e.message, backtrace: e.backtrace }, data: {} }, status: 500
   end
 end
