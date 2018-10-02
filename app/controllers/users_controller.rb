@@ -1,33 +1,31 @@
 class UsersController < ApplicationController
   before_action :set_student, only: [:show, :edit, :update, :destroy, :new_record, :add_record]
+  before_action :ensure_correct_user, only: [:teacher, :show, :edit, :update, :destroy, :new_record, :add_record]
+  before_action :correct_user, only: [:show_record]
 
   def index
   end
 
   def show_record
-    if current_student.blank? == true
-      redirect_to root_url, notice: '不正なアクセスです'
-    else
-      @name = current_student.name
-      @stu_id = current_student.student_id
-      @query = <<~QUERY
-        {
-            record{
-              jpn
-              math
-              eng
-              sci
-              soc
-              year
-              semester
-            }
-        }
-      QUERY
-      response = execute
-      #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
-      #logger.debug response
-      @record = response["data"]["record"]
-    end
+    @name = current_student.name
+    @stu_id = current_student.student_id
+    @query = <<~QUERY
+      {
+          record{
+            jpn
+            math
+            eng
+            sci
+            soc
+            year
+            semester
+          }
+      }
+    QUERY
+    response = execute
+    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
+    #logger.debug response
+    @record = response["data"]["record"]
   end
 
   def new_record
@@ -90,6 +88,7 @@ class UsersController < ApplicationController
   def login
     @teacher = Teacher.find_by(teacher_id: params[:s_id], password: params[:s_password])
     if @teacher
+      session[:s_id] = params[:s_id]
       session[:teacher_name] = @teacher.name
       redirect_to users_teacher_path, notice: "ログインしました"
     else
@@ -100,11 +99,13 @@ class UsersController < ApplicationController
   end
 
   def logout
+    session[:s_id] = nil
     session[:teacher_name] = nil
     redirect_to users_index_path, notice: "ログアウトしました"
   end
 
   def teacher
+
     @students = Student.all
   end
 
@@ -165,9 +166,17 @@ private
   end
 
   def correct_user
-    @micropost = current_user.microposts.find_by(id: params[:id])
-    unless @micropost
-      redirect_to root_url
+    if current_student.blank? == true
+      redirect_to root_url, notice: '不正なアクセスです'
+    end
+  end
+
+  def ensure_correct_user
+    @teacher = Teacher.pluck("teacher_id")
+    logger.debug("番号：#{session[:s_id].to_i}")
+    unless @teacher.include?(session[:s_id].to_i)
+      flash[:notice] = "権限がありません"
+      redirect_to("/users/index")
     end
   end
 
