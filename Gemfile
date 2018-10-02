@@ -72,3 +72,9 @@ gem 'graphiql-rails', group: :development
 gem 'graphql-activerecord'
 
 gem 'httparty'
+
+gem 'awesome_print'
+gem 'pry-byebug'
+gem 'pry-rails'
+gem 'pry-doc'
+gem 'pry-stack_explorer'

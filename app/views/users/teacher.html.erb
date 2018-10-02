@@ -1,6 +1,8 @@
-<p id="notice"><%= notice %></p>
-
 <h1>生徒情報一覧</h1>
+
+<% if session[:teacher_name] %>
+<h2>ようこそ<%= session[:teacher_name] %>先生</h2>
+<% end %>
 
 <table>
   <thead>
@@ -32,6 +34,6 @@
 <br>
 
 <%= link_to '新規登録', students_sign_up_path %>
-<%= link_to 'ログアウト', users_index_path %>
+<%= link_to 'ログアウト', users_teacher_path(:teacher_name), method: :post %>
 
 

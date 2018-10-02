@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_09_12_074102) do
+ActiveRecord::Schema.define(version: 2018_10_01_034444) do
 
   create_table "assessings", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
     t.integer "student_id"
@@ -36,6 +36,7 @@ ActiveRecord::Schema.define(version: 2018_09_12_074102) do
     t.integer "semester"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["student_id", "year", "semester"], name: "student_id", unique: true
   end
 
   create_table "students", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
@@ -51,6 +52,14 @@ ActiveRecord::Schema.define(version: 2018_09_12_074102) do
     t.datetime "remember_created_at"
     t.index ["reset_password_token"], name: "index_students_on_reset_password_token", unique: true
     t.index ["student_id"], name: "index_students_on_student_id", unique: true
+  end
+
+  create_table "teachers", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8", force: :cascade do |t|
+    t.integer "teacher_id"
+    t.string "name"
+    t.string "password"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
 end

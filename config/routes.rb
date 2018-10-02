@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   post 'users/login' => 'users#login'
   get 'users/show_record' => 'users#show_record'
   get 'users/teacher'
+  post 'users/teacher' => 'users#logout'
   get 'users/index', as:"users_index"
   get 'users/show/:id' => 'users#show', as:"users_show"
   get 'users/new_record/:id' => 'users#new_record', as:"users_new_record"
