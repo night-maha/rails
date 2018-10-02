@@ -5,25 +5,29 @@ class UsersController < ApplicationController
   end
 
   def show_record
-    @name = current_student.name
-    @stu_id = current_student.student_id
-    @query = <<~QUERY
-      {
-          record{
-            jpn
-            math
-            eng
-            sci
-            soc
-            year
-            semester
-          }
-      }
-    QUERY
-    response = execute
-    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
-    #logger.debug response
-    @record = response["data"]["record"]
+    if current_student.blank? == true
+      redirect_to root_url, notice: '不正なアクセスです'
+    else
+      @name = current_student.name
+      @stu_id = current_student.student_id
+      @query = <<~QUERY
+        {
+            record{
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+        }
+      QUERY
+      response = execute
+      #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
+      #logger.debug response
+      @record = response["data"]["record"]
+    end
   end
 
   def new_record
@@ -51,6 +55,7 @@ class UsersController < ApplicationController
     render :new_record, :id => @student.id
   end
 
+=begin
   def login
     #redirect_to '/users/index'
     @stu_id = params[:s_id]
@@ -73,12 +78,30 @@ class UsersController < ApplicationController
         end
       end
     elsif !(@stu_id.empty?)
-      redirect_to users_index_path, notice: "パスワード入ってないよ"
-    elsif !(@stu_pass.empty?)
+      redirect_to users_index_path, notice: "パスワード入ってないよ
+    elsif !(@stu_pass.empty?)"
       redirect_to users_index_path, notice: "学籍番号入ってないよ"
     else
       redirect_to users_index_path, notice: "両方入ってないよ"
     end
+  end
+=end
+
+  def login
+    @teacher = Teacher.find_by(teacher_id: params[:s_id], password: params[:s_password])
+    if @teacher
+      session[:teacher_name] = @teacher.name
+      redirect_to users_teacher_path, notice: "ログインしました"
+    else
+      @name = params[:s_id]
+      @password = params[:s_password]
+      redirect_to users_index_path, notice: "学籍番号かパスワードが間違っています"
+    end
+  end
+
+  def logout
+    session[:teacher_name] = nil
+    redirect_to users_index_path, notice: "ログアウトしました"
   end
 
   def teacher
