@@ -51,75 +51,54 @@ class UsersController < ApplicationController
     logger.debug @params2["year"].class
     logger.debug @params2["semester"]
     @year = Record.where(student_id: @stu_id).order(year: :desc).pluck(:year).uniq
+    @schema_frame = <<~XXX
+    jpn
+          math
+          eng
+          sci
+          soc
+          year
+          semester
+        }
+    }
+    XXX
 
     if !(@params2["year"].zero? || @params2["semester"].zero?)
       @query = <<~QUERY
         query($year: Int, $semester: Int){
             record(year: $year, semester: $semester){
-              jpn
-              math
-              eng
-              sci
-              soc
-              year
-              semester
-            }
-        }
+              #{@schema_frame}
       QUERY
     elsif @params2["year"].zero? && !@params2["semester"].zero?
       @query = <<~QUERY
          query($semester: Int){
             record(semester: $semester){
-              jpn
-              math
-              eng
-              sci
-              soc
-              year
-              semester
-            }
-        }
+              #{@schema_frame}
       QUERY
     elsif @params2["semester"].zero? && !@params2["year"].zero?
       @query = <<~QUERY
          query($year: Int){
             record(year: $year){
-              jpn
-              math
-              eng
-              sci
-              soc
-              year
-              semester
-            }
-        }
+              #{@schema_frame}
       QUERY
     else
       @query = <<~QUERY
       {
           record{
-            jpn
-            math
-            eng
-            sci
-            soc
-            year
-            semester
-          }
-      }
+            #{@schema_frame}
       QUERY
     end
+
     logger.debug @query
     response = execute
     #logger.debug response.inspect
-    response["data"]["record"].each do |n|
-      if n.blank?
-        n = "未実施"
+    response["data"]["record"].each do |resarr|
+      while resarr.value?(nil)
+        resarr[resarr.key(nil)] = "未実施"
       end
-      logger.debug n
     end
     @record = response["data"]["record"]
-
+    logger.debug @record
 
     if @record.blank?
       redirect_to users_show_record_path, alert: "成績がありません"
@@ -252,7 +231,7 @@ private
     operation_name = params[:operationName]
     context = {
         # Query context goes here, for example:
-        current_student: current_student.student_id,
+        current_student: @stu_id,
     }
     result = ExamRecordSchema.execute(@query, variables: variables, context: context, operation_name: operation_name)
     #render json: result
