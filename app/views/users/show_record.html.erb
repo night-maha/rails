@@ -1,5 +1,11 @@
 <h1><%= "#{@name}さんの成績です" %></h1>
 
+<%= form_tag("/users/show_record/")  do %>
+<%= select_tag 'year', options_for_select(@year), {include_blank: '選択して下さい'} %>
+<%= select_tag 'semester', options_for_select([ '1', '2', '3' ]), { include_blank: '選択して下さい' } %>
+<%= submit_tag '表示' %>
+<% end %>
+
 <div align="center">
   <table border="20">
     <thead>

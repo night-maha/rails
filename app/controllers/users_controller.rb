@@ -6,6 +6,7 @@ class UsersController < ApplicationController
   def index
   end
 
+=begin
   def show_record
     @name = current_student.name
     @stu_id = current_student.student_id
@@ -23,10 +24,108 @@ class UsersController < ApplicationController
       }
     QUERY
     response = execute
-    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
-    #logger.debug response
+    logger.debug response
     @record = response["data"]["record"]
+    @year = @record.map{|h| h["year"]}.uniq
+    if params[:year].present? && params[:semester].present?
+      @record = response["data"]["record"].select{|i| i["year"] == params[:year].to_i && i["semester"] == params[:semester].to_i}
+    elsif params[:semester].present? && params[:year].blank?
+      @record = response["data"]["record"].select{|i| i["semester"] == params[:semester].to_i}
+    elsif params[:year].present? && params[:semester].blank?
+      @record = response["data"]["record"].select{|i| i["year"] == params[:year].to_i}
+    end
+
+    if @record.blank?
+      redirect_to users_show_record_path, alert: "成績がありません"
+    end
+    #response = HTTParty.post( "http://192.168.33.10:3000/graphql", headers: 'authenticity_token', body: {query: query})
   end
+=end
+
+#=begin
+  def show_record
+    @name = current_student.name
+    @stu_id = current_student.student_id
+    @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
+    logger.debug params[:year].class
+    logger.debug @params2["year"].class
+    logger.debug @params2["semester"]
+    @year = Record.where(student_id: @stu_id).order(year: :desc).pluck(:year).uniq
+
+    if !(@params2["year"].zero? || @params2["semester"].zero?)
+      @query = <<~QUERY
+        query($year: Int, $semester: Int){
+            record(year: $year, semester: $semester){
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+        }
+      QUERY
+    elsif @params2["year"].zero? && !@params2["semester"].zero?
+      @query = <<~QUERY
+         query($semester: Int){
+            record(semester: $semester){
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+        }
+      QUERY
+    elsif @params2["semester"].zero? && !@params2["year"].zero?
+      @query = <<~QUERY
+         query($year: Int){
+            record(year: $year){
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+        }
+      QUERY
+    else
+      @query = <<~QUERY
+      {
+          record{
+            jpn
+            math
+            eng
+            sci
+            soc
+            year
+            semester
+          }
+      }
+      QUERY
+    end
+    logger.debug @query
+    response = execute
+    #logger.debug response.inspect
+    response["data"]["record"].each do |n|
+      if n.blank?
+        n = "未実施"
+      end
+      logger.debug n
+    end
+    @record = response["data"]["record"]
+
+
+    if @record.blank?
+      redirect_to users_show_record_path, alert: "成績がありません"
+    end
+  end
+#=end
 
   def new_record
     @record = Record.new
@@ -53,38 +152,6 @@ class UsersController < ApplicationController
     render :new_record, :id => @student.id
   end
 
-=begin
-  def login
-    #redirect_to '/users/index'
-    @stu_id = params[:s_id]
-    @stu_pass = params[:s_password]
-    if !(@stu_id.empty? || @stu_pass.empty?)
-      if @stu_id == "999999" && @stu_pass == "dr951kntq"
-        redirect_to users_teacher_path
-      else
-        #検索結果の個数
-        login_id = Student.where("student_id = ?", @stu_id).count
-        #検索したユーザのパスワード
-        login_pass = Student.select("password").where("student_id = ?", @stu_id)
-        #検索結果によるエラー処理
-        if login_id == 0
-          redirect_to users_index_path, notice: "学籍番号かパスワードが間違っています"
-        elsif login_id == 1
-          redirect_to users_index_path, notice: "ok"
-        else
-          redirect_to users_index_path, notice: "管理者に連絡をしてください"
-        end
-      end
-    elsif !(@stu_id.empty?)
-      redirect_to users_index_path, notice: "パスワード入ってないよ
-    elsif !(@stu_pass.empty?)"
-      redirect_to users_index_path, notice: "学籍番号入ってないよ"
-    else
-      redirect_to users_index_path, notice: "両方入ってないよ"
-    end
-  end
-=end
-
   def login
     @teacher = Teacher.find_by(teacher_id: params[:s_id], password: params[:s_password])
     if @teacher
@@ -105,7 +172,6 @@ class UsersController < ApplicationController
   end
 
   def teacher
-
     @students = Student.all
   end
 
@@ -181,7 +247,7 @@ private
   end
 
   def execute
-    variables = ensure_hash(params[:variables])
+    variables = ensure_hash(@params2)
     #query = params[:query]
     operation_name = params[:operationName]
     context = {
