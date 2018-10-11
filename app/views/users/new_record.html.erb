@@ -1,5 +1,5 @@
 <h1><%= "#{@student.name}さんの成績入力フォーム" %></h1>
-<%= form_for(@record, url: "/users/new_record/#{@student.id}", html: {method: "post"})  do |f| %>
+<%= form_for(:record, url: "/users/new_record/#{@student.id}", html: {method: "post"})  do |f| %>
   <table>
     <thead>
       <tr>
@@ -22,7 +22,7 @@
         <td><%= f.number_field :eng, min: 0, max: 100  %></td>
         <td><%= f.number_field :sci, min: 0, max: 100  %></td>
         <td><%= f.number_field :soc, min: 0, max: 100  %></td>
-        <%= f.hidden_field :student_id, value: @student.student_id%>
+        <%= f.hidden_field :student_id, value: @student.student_id %>
       </tr>
       <%= f.submit '保存' %>
     </tbody>

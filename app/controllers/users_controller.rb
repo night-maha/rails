@@ -42,14 +42,7 @@ class UsersController < ApplicationController
   end
 =end
 
-#=begin
-  def show_record
-    @name = current_student.name
-    @stu_id = current_student.student_id
-    @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
-    logger.debug params[:year].class
-    logger.debug @params2["year"].class
-    logger.debug @params2["semester"]
+  def show_record_framework
     @year = Record.where(student_id: @stu_id).order(year: :desc).pluck(:year).uniq
     @schema_frame = <<~XXX
     jpn
@@ -97,6 +90,7 @@ class UsersController < ApplicationController
         resarr[resarr.key(nil)] = "未実施"
       end
     end
+
     @record = response["data"]["record"]
     logger.debug @record
 
@@ -104,12 +98,18 @@ class UsersController < ApplicationController
       redirect_to users_show_record_path, alert: "成績がありません"
     end
   end
-#=end
 
-  def new_record
-    @record = Record.new
+  def show_record
+    @name = current_student.name
+    @stu_id = current_student.student_id
+    @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
+    show_record_framework
   end
 
+  def new_record
+  end
+
+=begin
   def add_record
     @record = Record.new(record_params)
     respond_to do |format|
@@ -123,6 +123,60 @@ class UsersController < ApplicationController
         format.json { render json: @record.errors, status: :unprocessable_entity }
       end
     end
+
+  rescue ActiveRecord::RecordNotUnique => e
+    logger.error e
+    logger.error e.backtrace.join("\n")
+
+    flash[:alert] = '既に成績データが入っています'
+    render :new_record, :id => @student.id
+  end
+=end
+
+  def add_record
+    @record_pre = record_params.to_h
+    @record = @record_pre.map{|key,value|[key,value.to_i]}.to_h
+    @stu_id = @record["student_id"]
+    logger.debug @stu_id
+    while @record.value?(0)
+      logger.debug @record.key(0)
+      @record[@record.key(0)] = "null"
+    end
+    if @record["year"] == "null" || @record["semester"] == "null"
+      flash[:notice] = '必須項目は記入して下さい'
+      logger.debug params[:id]
+      redirect_to :action => "new_record", :id => params[:id]
+    else
+      @query =  <<~QUERY
+        mutation{
+          CreateRecord(input:{
+            jpn: #{@record["jpn"]}
+            math: #{@record["math"]}
+            eng: #{@record["eng"]}
+            sci: #{@record["sci"]}
+            soc: #{@record["soc"]}
+            year: #{@record["year"]}
+            semester: #{@record["semester"]}
+          }) {
+            record{
+              student_id
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+          }
+        }
+      QUERY
+      logger.debug @query.inspect
+      response = execute
+      logger.debug response["error"].inspect
+      redirect_to "/users/teacher", notice: '新規登録しました'
+    end
+
   rescue ActiveRecord::RecordNotUnique => e
     logger.error e
     logger.error e.backtrace.join("\n")
@@ -207,7 +261,7 @@ private
   end
 
   def record_params
-    params.require(:record).permit(:student_id, :jpn, :math, :eng, :sci, :soc, :year, :semester)
+    params.require(:record).permit(:id, :student_id, :jpn, :math, :eng, :sci, :soc, :year, :semester)
   end
 
   def correct_user

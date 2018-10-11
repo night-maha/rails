@@ -1,5 +1,5 @@
 class ExamRecordSchema < GraphQL::Schema
-  #mutation(Types::MutationType)
+  mutation(Types::MutationType)
   query(Types::QueryType)
 
   lazy_resolve(Promise, :sync)
