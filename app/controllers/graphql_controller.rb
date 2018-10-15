@@ -5,7 +5,7 @@ class GraphqlController < ApplicationController
     operation_name = params[:operationName]
     context = {
       # Query context goes here, for example:
-      current_student: current_student.student_id,
+      current_student: nil, #current_student.student_id,
     }
     #logger.debug variables
     #logger.debug operation_name
