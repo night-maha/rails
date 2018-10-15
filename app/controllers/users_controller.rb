@@ -42,7 +42,11 @@ class UsersController < ApplicationController
   end
 =end
 
-  def show_record_framework
+
+  def show_record
+    @name = current_student.name
+    @stu_id = current_student.student_id
+    @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
     @year = Record.where(student_id: @stu_id).order(year: :desc).pluck(:year).uniq
     @schema_frame = <<~XXX
     jpn
@@ -82,28 +86,93 @@ class UsersController < ApplicationController
       QUERY
     end
 
-    logger.debug @query
-    response = execute
-    #logger.debug response.inspect
-    response["data"]["record"].each do |resarr|
-      while resarr.value?(nil)
-        resarr[resarr.key(nil)] = "未実施"
+      logger.debug @query
+      response = execute
+      #logger.debug response.inspect
+      response["data"]["record"].each do |resarr|
+        while resarr.value?(nil)
+          resarr[resarr.key(nil)] = "未実施"
+        end
       end
-    end
-
-    @record = response["data"]["record"]
-    logger.debug @record
+      logger.debug response.inspect
+      @record = response["data"]["record"]
+      logger.debug @record
 
     if @record.blank?
       redirect_to users_show_record_path, alert: "成績がありません"
     end
+
   end
 
-  def show_record
-    @name = current_student.name
-    @stu_id = current_student.student_id
+  def show_all
+    @stu_id = nil
     @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
-    show_record_framework
+    @year = Record.all.order(year: :desc).pluck(:year).uniq
+    @schema_frame = <<~XXX
+    jpn
+          math
+          eng
+          sci
+          soc
+          year
+          semester
+        }
+      }
+    }
+    XXX
+
+    if !(@params2["year"].zero? || @params2["semester"].zero?)
+      @query = <<~QUERY
+        query($year: Int, $semester: Int){
+          student{
+            name
+            record(year: $year, semester: $semester){
+              #{@schema_frame}
+      QUERY
+    elsif @params2["year"].zero? && !@params2["semester"].zero?
+      @query = <<~QUERY
+         query($semester: Int){
+          student{
+            name
+            record(semester: $semester){
+              #{@schema_frame}
+      QUERY
+    elsif @params2["semester"].zero? && !@params2["year"].zero?
+      @query = <<~QUERY
+         query($year: Int){
+          student{
+            name
+            record(year: $year){
+              #{@schema_frame}
+      QUERY
+    else
+      @query = <<~QUERY
+      query{
+          student{
+            name
+            record{
+            #{@schema_frame}
+      QUERY
+    end
+
+      logger.debug @query
+      response = execute
+      n = 0
+      response["data"]["student"].size.times{
+        response["data"]["student"][n]["record"].each do |resarr|
+          while resarr.value?(nil)
+            resarr[resarr.key(nil)] = "未実施"
+          end
+        end
+        n = n + 1
+      }
+      logger.debug response["data"]["student"].inspect
+      @record = response["data"]["student"]
+      logger.debug @record
+
+    if @record.blank?
+      redirect_to users_show_all_path, alert: "成績がありません"
+    end
   end
 
   def new_record

@@ -1,5 +1,5 @@
-<h1><%= "#{@name}さんの成績です" %></h1>
-<%= form_tag("/users/show_record/")  do %>
+<h1>全生徒成績一覧</h1>
+<%= form_tag("/users/show_all/")  do %>
   <%= select_tag 'year', options_for_select(@year), {include_blank: '選択して下さい'} %>
   <%= select_tag 'semester', options_for_select([ '1', '2', '3' ]), { include_blank: '選択して下さい' } %>
   <%= submit_tag '表示' %>
@@ -8,6 +8,7 @@
   <table border="20">
     <thead>
     <tr>
+      <th>名前</th>
       <th>年度</th>
       <th>学期</th>
       <th>国語</th>
@@ -20,18 +21,21 @@
 
     <tbody>
     <% @record.each do |rec| %>
+      <% rec["record"].each do |r| %>
       <tr>
-        <td><%= rec["year"] %></td>
-        <td><%= rec["semester"] %></td>
-        <td><%= rec["jpn"] %></td>
-        <td><%= rec["math"] %></td>
-        <td><%= rec["eng"] %></td>
-        <td><%= rec["sci"] %></td>
-        <td><%= rec["soc"] %></td>
+        <td><%= rec["name"] %></td>
+        <td><%= r["year"] %></td>
+        <td><%= r["semester"] %></td>
+        <td><%= r["jpn"] %></td>
+        <td><%= r["math"] %></td>
+        <td><%= r["eng"] %></td>
+        <td><%= r["sci"] %></td>
+        <td><%= r["soc"] %></td>
       </tr>
+      <% end %>
     <% end %>
     </tbody>
   </table>
 </div>
 
-<%= link_to "logout", students_sign_out_path %>
+<%= link_to '戻る', users_teacher_path %>

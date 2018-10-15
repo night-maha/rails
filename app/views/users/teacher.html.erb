@@ -4,6 +4,8 @@
 <h2>ようこそ<%= session[:teacher_name] %>先生</h2>
 <% end %>
 
+<%= link_to '全生徒成績表示', users_show_all_path %>
+
 <table>
   <thead>
     <tr>

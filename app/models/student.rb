@@ -28,4 +28,5 @@ class Student < ApplicationRecord
   end
 
   validates :student_id, presence: true, uniqueness: true
+  has_many :record, primary_key: "student_id"
 end
