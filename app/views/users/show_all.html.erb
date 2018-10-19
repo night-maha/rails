@@ -21,16 +21,16 @@
 
     <tbody>
     <% @record.each do |rec| %>
-      <% rec["record"].each do |r| %>
+      <% rec["records"]["edges"].each do |r| %>
       <tr>
         <td><%= rec["name"] %></td>
-        <td><%= r["year"] %></td>
-        <td><%= r["semester"] %></td>
-        <td><%= r["jpn"] %></td>
-        <td><%= r["math"] %></td>
-        <td><%= r["eng"] %></td>
-        <td><%= r["sci"] %></td>
-        <td><%= r["soc"] %></td>
+        <td><%= r["node"]["year"] %></td>
+        <td><%= r["node"]["semester"] %></td>
+        <td><%= r["node"]["jpn"] %></td>
+        <td><%= r["node"]["math"] %></td>
+        <td><%= r["node"]["eng"] %></td>
+        <td><%= r["node"]["sci"] %></td>
+        <td><%= r["node"]["soc"] %></td>
       </tr>
       <% end %>
     <% end %>

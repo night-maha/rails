@@ -254,6 +254,7 @@ DEPENDENCIES
   graphiql-rails
   graphql
   graphql-activerecord
+  graphql-batch
   httparty
   jbuilder (~> 2.5)
   listen (>= 3.0.5, < 3.2)

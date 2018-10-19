@@ -106,6 +106,67 @@ class UsersController < ApplicationController
 
   def show_all
     @stu_id = nil
+    #@params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
+    @year = Record.all.order(year: :desc).pluck(:year).uniq
+    @query = <<~QUERY
+        query{
+          student {
+            name
+            records{
+              edges {
+                node {
+                  jpn
+                  math
+                  eng
+                  sci
+                  soc
+                  year
+                  semester
+                }
+              }
+            }
+          }
+        }
+    QUERY
+    response = execute
+    r = 0
+    response["data"]["student"].size.times{
+      #logger.debug response["data"]["student"][r]["records"].flatten.inspect
+      test = response["data"]["student"][r]["records"].flatten
+      test.delete("edges")
+      #logger.debug test["node"]["year"].inspect
+      if params[:year].present? && params[:semester].present?
+        test[0].select!{|i| i["node"]["year"] == params[:year].to_i && i["node"]["semester"] == params[:semester].to_i}
+      elsif params[:semester].present? && params[:year].blank?
+        test[0].select!{|i| i["node"]["semester"] == params[:semester].to_i}
+      elsif params[:year].present? && params[:semester].blank?
+        test[0].select!{|i| i["node"]["year"] == params[:year].to_i}
+      end
+
+      if test[0].present?
+        test[0].each do |resarr|
+          while resarr["node"].value?(nil)
+            resarr["node"][resarr["node"].key(nil)] = "未実施"
+          end
+        end
+      end
+      r = r + 1
+    }
+
+    @record = response["data"]["student"]
+
+    @norecord = @record.map{|i| i["records"]["edges"].empty?}
+
+    if @norecord.all?{|no| no == true}
+      redirect_to users_show_all_path, alert: "成績がありません"
+    end
+
+  end
+
+
+=begin
+  def show_all
+    @stu_id = nil
     @params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
     @year = Record.all.order(year: :desc).pluck(:year).uniq
     @schema_frame = <<~XXX
@@ -157,6 +218,7 @@ class UsersController < ApplicationController
 
       logger.debug @query
       response = execute
+      logger.debug response.inspect
       n = 0
       response["data"]["student"].size.times{
         response["data"]["student"][n]["record"].each do |resarr|
@@ -174,6 +236,7 @@ class UsersController < ApplicationController
       redirect_to users_show_all_path, alert: "成績がありません"
     end
   end
+=end
 
   def new_record
   end
