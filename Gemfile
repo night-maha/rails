@@ -67,6 +67,8 @@ gem 'devise'
 
 gem 'graphql'
 
+gem 'graphql-batch'
+
 gem 'graphiql-rails', group: :development
 
 gem 'graphql-activerecord'

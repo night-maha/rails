@@ -36,6 +36,8 @@ Rails.application.routes.draw do
   get 'users/show/:id' => 'users#show', as:"users_show"
   get 'users/new_record/:id' => 'users#new_record', as:"users_new_record"
   post 'users/new_record/:id' => 'users#add_record', as:"users_add_record"
+  get 'users/edit_record/:id' => 'users#edit_record', as:"users_edit_record"
+  post 'users/edit_record/:id' => 'users#update_record', as:"users_update_record"
   get 'users/new'
   get 'users/edit/:id' => 'users#edit', as:"users_edit"
   delete 'users/destroy/:id' => 'users#destroy', as:"users_destroy"

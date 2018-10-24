@@ -1,13 +1,17 @@
 <h1>全生徒成績一覧</h1>
 <%= form_tag("/users/show_all/")  do %>
-  <%= select_tag 'year', options_for_select(@year), {include_blank: '選択して下さい'} %>
-  <%= select_tag 'semester', options_for_select([ '1', '2', '3' ]), { include_blank: '選択して下さい' } %>
+  <%= select_tag 'name', options_for_select(@allname), {include_blank: '生徒名'} %>
+  <%= select_tag 'year', options_for_select(@year), {include_blank: '年度'} %>
+  <%= select_tag 'semester', options_for_select([ '1', '2', '3' ]), { include_blank: '学期' } %>
   <%= submit_tag '表示' %>
-<% end %>
+  <%= submit_tag '選択したものを削除', data: {confirm: "選択したものを消しますか？"}, name: "destroy_record"%>
+  <br><br>
+
 <div align="center">
   <table border="20">
     <thead>
     <tr>
+      <th>選択</th>
       <th>名前</th>
       <th>年度</th>
       <th>学期</th>
@@ -21,21 +25,25 @@
 
     <tbody>
     <% @record.each do |rec| %>
-      <% rec["record"].each do |r| %>
+      <% rec["records"]["edges"].each do |r| %>
       <tr>
+        <td><%= check_box 'page', r["node"]["id"], {},  true, false  %></td>
         <td><%= rec["name"] %></td>
-        <td><%= r["year"] %></td>
-        <td><%= r["semester"] %></td>
-        <td><%= r["jpn"] %></td>
-        <td><%= r["math"] %></td>
-        <td><%= r["eng"] %></td>
-        <td><%= r["sci"] %></td>
-        <td><%= r["soc"] %></td>
+        <td><%= r["node"]["year"] %></td>
+        <td><%= r["node"]["semester"] %></td>
+        <td><%= r["node"]["jpn"] %></td>
+        <td><%= r["node"]["math"] %></td>
+        <td><%= r["node"]["eng"] %></td>
+        <td><%= r["node"]["sci"] %></td>
+        <td><%= r["node"]["soc"] %></td>
+        <td><%= link_to '編集', users_edit_record_path(r["node"]["id"]) %></td>
       </tr>
       <% end %>
     <% end %>
     </tbody>
   </table>
 </div>
+
+<% end %>
 
 <%= link_to '戻る', users_teacher_path %>
