@@ -12,7 +12,7 @@ class Loaders::AssociationLoader < GraphQL::Batch::Loader
   end
 
   def load(record)
-    Rails.logger.debug "hoge"
+    #Rails.logger.debug "hoge"
     raise TypeError, "#{@model} loader can't load association for #{record.class}" unless record.is_a?(@model)
     return Promise.resolve(read_association(record)) if association_loaded?(record)
     super

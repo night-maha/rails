@@ -13,7 +13,7 @@ Types::StudentType = GraphQL::ObjectType.define do
     argument :semester, types.Int
 
     resolve ->(obj, args, ctx) {
-      Rails.logger.debug obj.inspect
+      #Rails.logger.debug obj.inspect
       #Loaders::AssociationLoader.for(Student, :record).load(obj)
       if args[:year].present? && args[:semester].present?
         Record.where('year = ? AND semester = ? AND student_id = ?', args[:year], args[:semester], obj.student_id).order(year: :desc, semester: :desc)

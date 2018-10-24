@@ -105,64 +105,126 @@ class UsersController < ApplicationController
   end
 
   def show_all
-    @stu_id = nil
-    #@params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
-    @year = Record.all.order(year: :desc).pluck(:year).uniq
-    @query = <<~QUERY
-        query{
-          student {
-            name
-            records{
-              edges {
-                node {
-                  jpn
-                  math
-                  eng
-                  sci
-                  soc
-                  year
-                  semester
+    case params[:destroy_record] && params[:page].present?
+    when true
+      remreco = params[:page].keys.to_a.map(&:to_i)
+      @query = <<~QUERY
+          mutation {
+            DeleteRecord(input: {id: #{remreco}}) {
+              deletedId
+            }
+          }
+      QUERY
+
+      execute
+
+      respond_to do |format|
+        format.html { redirect_to "/users/teacher", notice: '削除しました' }
+        format.json { head :no_content }
+      end
+
+    else
+      @stu_id = nil
+      #@params2 = Hash["year" => params[:year].to_i, "semester" => params[:semester].to_i]
+      @allname = Student.all.pluck(:name)
+      @year = Record.all.order(year: :desc).pluck(:year).uniq
+      @query = <<~QUERY
+          query{
+            student {
+              name
+              records {
+                edges {
+                  node {
+                    id
+                    jpn
+                    math
+                    eng
+                    sci
+                    soc
+                    year
+                    semester
+                  }
                 }
               }
             }
           }
-        }
-    QUERY
-    response = execute
-    r = 0
-    response["data"]["student"].size.times{
-      #logger.debug response["data"]["student"][r]["records"].flatten.inspect
-      test = response["data"]["student"][r]["records"].flatten
-      test.delete("edges")
-      #logger.debug test["node"]["year"].inspect
-      if params[:year].present? && params[:semester].present?
-        test[0].select!{|i| i["node"]["year"] == params[:year].to_i && i["node"]["semester"] == params[:semester].to_i}
-      elsif params[:semester].present? && params[:year].blank?
-        test[0].select!{|i| i["node"]["semester"] == params[:semester].to_i}
-      elsif params[:year].present? && params[:semester].blank?
-        test[0].select!{|i| i["node"]["year"] == params[:year].to_i}
-      end
+      QUERY
 
-      if test[0].present?
-        test[0].each do |resarr|
-          while resarr["node"].value?(nil)
-            resarr["node"][resarr["node"].key(nil)] = "未実施"
+      response = execute
+      r = 0
+      response["data"]["student"].size.times{
+        #logger.debug response["data"]["student"][r]["records"].flatten.inspect
+        test = response["data"]["student"][r]["records"].flatten
+        test.delete("edges")
+        #logger.debug test["node"]["year"].inspect
+        if params[:year].present? && params[:semester].present?
+          test[0].select!{|i| i["node"]["year"] == params[:year].to_i && i["node"]["semester"] == params[:semester].to_i}
+        elsif params[:semester].present? && params[:year].blank?
+          test[0].select!{|i| i["node"]["semester"] == params[:semester].to_i}
+        elsif params[:year].present? && params[:semester].blank?
+          test[0].select!{|i| i["node"]["year"] == params[:year].to_i}
+        end
+
+        if test[0].present?
+          test[0].each do |resarr|
+            while resarr["node"].value?(nil)
+              resarr["node"][resarr["node"].key(nil)] = "未実施"
+            end
           end
         end
+        r = r + 1
+      }
+
+      @record = response["data"]["student"]
+      #logger.debug @record.inspect
+
+      @norecord = @record.map{|i| i["records"]["edges"].empty?}
+
+      if @norecord.all?{|no| no == true}
+        redirect_to users_show_all_path, alert: "成績がありません"
       end
-      r = r + 1
-    }
-
-    @record = response["data"]["student"]
-
-    @norecord = @record.map{|i| i["records"]["edges"].empty?}
-
-    if @norecord.all?{|no| no == true}
-      redirect_to users_show_all_path, alert: "成績がありません"
     end
-
   end
 
+  def edit_record
+    @ed_record = Record.find(params[:id])
+  end
+
+  def update_record
+    emptyreco = params[:record].values.map{|i| i.empty?}
+    unless emptyreco.all?{|no| no == false}
+      flash[:notice] = '全て記入して下さい'
+      redirect_to :action => "edit_record", :id => params[:id]
+    end
+    upamams = params[:record].values.map(&:to_i)
+    @query = <<~QUERY
+        mutation{
+          UpdateRecord(input:{
+            id: #{upamams[5]}
+            jpn: #{upamams[0]}
+            math: #{upamams[1]}
+            eng: #{upamams[2]}
+            sci: #{upamams[3]}
+            soc: #{upamams[4]}
+          }) {
+            record{
+              id
+              student_id
+              jpn
+              math
+              eng
+              sci
+              soc
+              year
+              semester
+            }
+          }
+        }
+    QUERY
+
+    execute
+    redirect_to "/users/show_all", notice: '更新しました'
+  end
 
 =begin
   def show_all
